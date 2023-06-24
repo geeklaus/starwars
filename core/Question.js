@@ -16,6 +16,7 @@ const questionTemplates = {
 	people: {
 		films: 'In which film was character with name %s',
 		planets: 'On which planet was the charecter %s',
+		starships: 'Which starship the charecter %s owns'
 	},
 
 	planets: {
@@ -25,6 +26,10 @@ const questionTemplates = {
 
 	films: {
 		people: 'Who was the hero of the film %s',
-		planets: 'Which of the planets was in the film %s'
+		planets: 'Which of the planets was in the film %s',
+		starships: 'Which of the starships was in the film %s'
+	},
+	starships: {
+		films: 'In which film there was starship %s'
 	}
 }

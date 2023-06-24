@@ -5,8 +5,9 @@
 
 */
 import axios from 'axios'
-import { getNameField, getRandomInt,  getRelationField } from './Utils.js'
+import { getNameField, getRandomInt,  getRelationField, returnRandomPageNumber } from './Utils.js'
 import { Question } from './Question.js'
+import { Answer } from './Answer.js'
 
 
 class QuestionData {
@@ -19,30 +20,41 @@ class QuestionData {
 	async getData() {
 		const getAllUnknown = () => {
 			try {
-				return axios.get('https://swapi.dev/api/' + this.unknownType)
+				return axios.get('https://swapi.dev/api/' + this.unknownType + '/?page=' + returnRandomPageNumber(this.unknownType))
 			} catch (error) {
 				console.error(error)
 			}
 		}
 		const getAllKnown = () => {
 			try {
-				return axios.get('https://swapi.dev/api/' + this.knownType)
+				return axios.get('https://swapi.dev/api/' + this.knownType + '/?page=' + returnRandomPageNumber(this.knownType))
 			} catch (error) {
 				console.error(error)
 			}
 		}
-
+		
 
 		const f = async () => {
 			const promise = await Promise.all([getAllUnknown(), getAllKnown()]).then(
 				(responseArray) => {
 					const unknownArray = responseArray[0].data.results
 					const knownArray = responseArray[1].data.results
-
-					const known = this.getRandomElement(knownArray)
+					
+					let relationUrlArray
+					let known
+					/**
+					 * Here we pick up random object from the list of known entities, but
+					 * in case the selected object has empty relation to unknown - we will retry
+					 */
+					do {
+						known = this.getRandomElement(knownArray)
+						relationUrlArray = known[getRelationField(this.knownType, this.unknownType)]
+						if (relationUrlArray.length == 0) console.log(
+							"Found " + known[getNameField(this.knownType)] + "with empty related entity"
+							)
+					} while (relationUrlArray.length == 0)
+					
 					const knownName = known[getNameField(this.knownType)]
-
-					let relationUrlArray = known[getRelationField(this.knownType, this.unknownType)]
 					if (!(relationUrlArray instanceof Array)) {
 						relationUrlArray = [relationUrlArray]
 					}
@@ -52,7 +64,9 @@ class QuestionData {
 					const falseUnknownArray = this.getThreeExluding(unknownArray, relationUrlArray)
 
 					const question = new Question(this.knownType, knownName, this.unknownType)
+					const answer = new Answer(trueUnkownUrl, falseUnknownArray, this.unknownType)
 					console.log(question.generateQuestion())
+					console.log(answer.getAllAnswers())
 				}
 			)
 		}
@@ -69,8 +83,22 @@ class QuestionData {
 		}
 	}
 
+	/**
+	 * 
+	 * @param {array of related objects from which to select incorrect answers} objectArray 
+	 * @param {array of url(s) each of which correspond to correct answer} urlExcludingArray 
+	 * @returns {3-element array of objects, each of which is incorrect answer}
+	 */
 	getThreeExluding(objectArray, urlExcludingArray) {
 		const result = []
+		/**
+		 * Shuffling array of relations, from which we are picking 3 incorrect answers.
+		 * We do so in order for randomizing the result.
+		 */
+		if (objectArray instanceof Array) {
+			objectArray.sort(() => Math.random() - 0.5)
+		}
+
 		for (var i in objectArray) {
 			if (result.length == 3) break
 
