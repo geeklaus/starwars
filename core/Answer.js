@@ -1,4 +1,4 @@
-import { fakeEntities, getNameField, returnRandomPageNumber } from "./Utils.js";
+import { getFakeValue, getNameField } from "./Utils.js";
 import axios from 'axios'
 
 
@@ -9,45 +9,25 @@ class Answer {
 		this.unknownType = unknownType
 	}
 
-	getAllAnswers() {
+	async getAllAnswers() {
+		const response = await axios.get(this.correctUnkownUrl)
 
+		let result = []
 
-		const getAllUnknown = () => {
-			try {
-				return axios.get(this.correctUnkownUrl)
-			} catch (error) {
-				console.error(error)
-			}
-		}
-
-		let correctAnswer 
-
-		getAllUnknown().then((response) => {
-			correctAnswer = response.data[getNameField(this.unknownType)]
-
-			console.log(correctAnswer)
-			}
-		)
-		let incorrectUnknownArrayOfNames = []
+		result.push(response.data[getNameField(this.unknownType)])
 
 		for (let index in this.incorrectUnknownArray) {
-			incorrectUnknownArrayOfNames.push(
+			result.push(
 				this.incorrectUnknownArray[index][getNameField(this.unknownType)]
-				)	
+			)	
 		}
 
-		let numberOfAdditionalIncorectAnswers = (3 - incorrectUnknownArrayOfNames.length)
-		
-		for (let i = 0; i < numberOfAdditionalIncorectAnswers; i++ ) {
-			incorrectUnknownArrayOfNames.push(fakeEntities[this.unknownType][i])
+		let fakeAnswerAmount = (3 - this.incorrectUnknownArray.length)
+		for (let i = 0; i < fakeAnswerAmount; i++ ) {
+			result.push(getFakeValue(this.unknownType, i))
 		}
-
-		return [correctAnswer, ...incorrectUnknownArrayOfNames]
+		return result
 	}
-
-	
-
-	
 }
 
 export {Answer}

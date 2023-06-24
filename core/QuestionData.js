@@ -32,43 +32,43 @@ class QuestionData {
 				console.error(error)
 			}
 		}
-		
+
 
 		const f = async () => {
-			const promise = await Promise.all([getAllUnknown(), getAllKnown()]).then(
-				(responseArray) => {
-					const unknownArray = responseArray[0].data.results
-					const knownArray = responseArray[1].data.results
-					
-					let relationUrlArray
-					let known
-					/**
-					 * Here we pick up random object from the list of known entities, but
-					 * in case the selected object has empty relation to unknown - we will retry
-					 */
-					do {
-						known = this.getRandomElement(knownArray)
-						relationUrlArray = known[getRelationField(this.knownType, this.unknownType)]
-						if (relationUrlArray.length == 0) console.log(
-							"Found " + known[getNameField(this.knownType)] + "with empty related entity"
-							)
-					} while (relationUrlArray.length == 0)
-					
-					const knownName = known[getNameField(this.knownType)]
-					if (!(relationUrlArray instanceof Array)) {
-						relationUrlArray = [relationUrlArray]
-					}
+			const responseArray = await Promise.all([getAllUnknown(), getAllKnown()])
 
-					const trueUnkownUrl = this.getRandomElement(relationUrlArray)
+			const unknownArray = responseArray[0].data.results
+			const knownArray = responseArray[1].data.results
+			
+			let relationUrlArray
+			let known
+			/**
+			 * Here we pick up random object from the list of known entities, but
+			 * in case the selected object has empty relation to unknown - we will retry
+			 */
+			do {
+				known = this.getRandomElement(knownArray)
+				relationUrlArray = known[getRelationField(this.knownType, this.unknownType)]
+				if (relationUrlArray.length == 0) console.log(
+					"Found " + known[getNameField(this.knownType)] + "with empty related entity"
+					)
+			} while (relationUrlArray.length == 0)
+			
+			const knownName = known[getNameField(this.knownType)]
+			if (!(relationUrlArray instanceof Array)) {
+				relationUrlArray = [relationUrlArray]
+			}
 
-					const falseUnknownArray = this.getThreeExluding(unknownArray, relationUrlArray)
+			const trueUnkownUrl = this.getRandomElement(relationUrlArray)
 
-					const question = new Question(this.knownType, knownName, this.unknownType)
-					const answer = new Answer(trueUnkownUrl, falseUnknownArray, this.unknownType)
-					console.log(question.generateQuestion())
-					console.log(answer.getAllAnswers())
-				}
-			)
+			const falseUnknownArray = this.getThreeExluding(unknownArray, relationUrlArray)
+
+			const question = new Question(this.knownType, knownName, this.unknownType)
+			const answer = new Answer(trueUnkownUrl, falseUnknownArray, this.unknownType)
+			const questionStr = question.generateQuestion()
+			const answerArray = await answer.getAllAnswers()
+			console.log(questionStr)
+			console.log(answerArray)
 		}
 		f()
 

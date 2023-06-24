@@ -39,15 +39,15 @@ export function getNameField(type) {
 	return typeNameField[type]
 }
 
-export const fakeEntities = {
+const fakeEntities = {
 	people: ['Lion King', 'King Kong', 'Packman'],
 	films: ['Family guy', 'Saw', 'Megalodon'],
 	planets: ['Mars', 'Uranus', 'Earth'],
 	starships: ['su-99', 'Ship200', 'TeslaShip']
 }
 
-export function getFakeValues(name) {
-	return fakeEntities[name]
+export function getFakeValue(type, index) {
+	return fakeEntities[type][index]
 }
 
 const numberOfPages = {
